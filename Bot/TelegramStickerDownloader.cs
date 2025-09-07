@@ -4,6 +4,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using Telegram.Bot;
+using Xabe.FFmpeg;
 
 public class TelegramStickerDownloader
 {
@@ -53,6 +54,8 @@ public class TelegramStickerDownloader
 
         FileStream? zipWebpStream = null;
         ZipArchive? zipWebp = null;
+        FileStream? zipWebmStream = null;
+        ZipArchive? zipWebm = null;
         FileStream? zipPngStream = null;
         ZipArchive? zipPng = null;
         FileStream? zipGifStream = null;
@@ -86,8 +89,28 @@ public class TelegramStickerDownloader
 
                 stickerProgress++;
             }
+            //Extra step to check if file is WEBM, by some reasons, telegram accept animation as WEBM but not set it as animated sticker
+            else if (string.Equals(Path.GetExtension(file.FilePath), ".webm", StringComparison.OrdinalIgnoreCase))
+            {
+                //WEBM
+                if (zipWebm == null)
+                {
+                    zipWebmStream = new FileStream(Path.Combine(_downloadFolderName, $"{stickerNameSet}_webm.zip"), FileMode.Create);
+                    zipWebm = new ZipArchive(zipWebmStream, ZipArchiveMode.Create);
+                }
+                string webmName = $"{stickerNameSet}_{sticker.FileUniqueId}.webm";
+                var entryWebm = zipWebm.CreateEntry(webmName);
+                using (var entryStream = entryWebm.Open())
+                {
+                    await entryStream.WriteAsync(data, 0, data.Length);
+                }
+
+
+                stickerProgress++;
+            }
             else
             {
+
                 //WEBP
                 if (zipWebp == null)
                 {
@@ -131,6 +154,8 @@ public class TelegramStickerDownloader
 
         zipWebp?.Dispose();
         zipWebpStream?.Dispose();
+        zipWebm?.Dispose();
+        zipWebmStream?.Dispose();
         zipPng?.Dispose();
         zipPngStream?.Dispose();
         zipGif?.Dispose();
