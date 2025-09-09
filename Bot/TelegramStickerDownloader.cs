@@ -4,7 +4,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using Telegram.Bot;
-using Xabe.FFmpeg;
 
 public class TelegramStickerDownloader
 {
